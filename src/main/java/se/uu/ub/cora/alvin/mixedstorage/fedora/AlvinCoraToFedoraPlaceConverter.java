@@ -107,6 +107,7 @@ public class AlvinCoraToFedoraPlaceConverter implements AlvinCoraToFedoraConvert
 
 		String tsCreated = recordInfo.getFirstAtomicValueWithNameInData("tsCreated");
 		setStringFromDocumentUsingXPath("/place/recordInfo/created/date", tsCreated + " UTC");
+		setStringFromDocumentUsingXPath("/place/longitude", "14.000001");
 
 		return parser.getDocumentAsString("/");
 	}

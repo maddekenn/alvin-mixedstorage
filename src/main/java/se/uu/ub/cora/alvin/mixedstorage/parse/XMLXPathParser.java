@@ -20,6 +20,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
@@ -110,7 +111,18 @@ public final class XMLXPathParser {
 		try {
 			XPathExpression expr = xpath.compile(xpathString);
 			Node nodeToSet = (Node) expr.evaluate(document, XPathConstants.NODE);
-			nodeToSet.setTextContent(newValue);
+			if (nodeToSet != null) {
+				nodeToSet.setTextContent(newValue);
+			} else {
+				Element longitudeNode = document.createElement("longitude");
+				longitudeNode.appendChild(document.createTextNode(""));
+				XPathExpression parentExpr = xpath.compile("/place");
+				Node parentNode = (Node) parentExpr.evaluate(document, XPathConstants.NODE);
+				// Node parentNode = document.getParentNode();
+				parentNode.appendChild(longitudeNode);
+				nodeToSet = (Node) expr.evaluate(document, XPathConstants.NODE);
+				nodeToSet.setTextContent(newValue);
+			}
 		} catch (XPathExpressionException e) {
 			throw new RuntimeException("Error setting string value on node", e);
 		}

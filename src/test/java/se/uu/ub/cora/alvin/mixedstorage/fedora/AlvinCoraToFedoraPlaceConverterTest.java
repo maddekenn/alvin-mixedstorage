@@ -28,6 +28,7 @@ import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 
 public class AlvinCoraToFedoraPlaceConverterTest {
+
 	@Test
 	public void testConvertToFedoraXML() throws Exception {
 
@@ -95,6 +96,27 @@ public class AlvinCoraToFedoraPlaceConverterTest {
 		String xml = converter.toNewXML(record);
 
 		assertEquals(xml, ResourceReader.readResourceAsString("place/expectedCreated680.xml"));
+
+	}
+
+	@Test
+	public void testConvertToNewFedoraXMLWithCoordinates() throws Exception {
+		HttpHandlerFactorySpy httpHandlerFactory = new HttpHandlerFactorySpy();
+
+		String fedoraURL = "someFedoraURL";
+		AlvinCoraToFedoraPlaceConverter converter = AlvinCoraToFedoraPlaceConverter
+				.usingHttpHandlerFactoryAndFedoraUrl(httpHandlerFactory, fedoraURL);
+
+		DataGroup record = createPlaceDataGroupUsingPid("alvin-place:680");
+		DataGroup coordinates = DataGroup.withNameInData("coordinates");
+		coordinates.addChild(DataAtomic.withNameInDataAndValue("latitude", "41.88121792424412"));
+		coordinates.addChild(DataAtomic.withNameInDataAndValue("longitude", "12.488296441733837"));
+		record.addChild(coordinates);
+
+		String xml = converter.toNewXML(record);
+
+		assertEquals(xml,
+				ResourceReader.readResourceAsString("place/expectedCreated680Coordinates.xml"));
 
 	}
 
