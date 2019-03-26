@@ -53,6 +53,26 @@ public class AlvinCoraToFedoraPlaceConverterTest {
 
 	}
 
+	@Test
+	public void testConvertToFedoraXMLUpdateCoordinates() throws Exception {
+
+		HttpHandlerFactorySpy httpHandlerFactory = new HttpHandlerFactorySpy();
+		httpHandlerFactory.responseCodes.add(201);
+		httpHandlerFactory.responseTexts.add(ResourceReader.readResourceAsString("place/679.xml"));
+
+		String fedoraURL = "someFedoraURL";
+		AlvinCoraToFedoraConverter converter = AlvinCoraToFedoraPlaceConverter
+				.usingHttpHandlerFactoryAndFedoraUrl(httpHandlerFactory, fedoraURL);
+		DataGroup record = createPlaceDataGroupUsingPid("alvin-place:679");
+		addCoordinatesToRecord(record);
+
+		String xml = converter.toXML(record);
+
+		assertEquals(xml,
+				ResourceReader.readResourceAsString("place/expectedUpdated679WithCoordinates.xml"));
+
+	}
+
 	private DataGroup createPlaceDataGroupUsingPid(String id) {
 		DataGroup record = DataGroup.withNameInData("authority");
 		record.addAttributeByIdWithValue("type", "place");
@@ -86,13 +106,11 @@ public class AlvinCoraToFedoraPlaceConverterTest {
 	@Test
 	public void testConvertToNewFedoraXML() throws Exception {
 		HttpHandlerFactorySpy httpHandlerFactory = new HttpHandlerFactorySpy();
-
 		String fedoraURL = "someFedoraURL";
 		AlvinCoraToFedoraPlaceConverter converter = AlvinCoraToFedoraPlaceConverter
 				.usingHttpHandlerFactoryAndFedoraUrl(httpHandlerFactory, fedoraURL);
 
 		DataGroup record = createPlaceDataGroupUsingPid("alvin-place:680");
-
 		String xml = converter.toNewXML(record);
 
 		assertEquals(xml, ResourceReader.readResourceAsString("place/expectedCreated680.xml"));
@@ -108,16 +126,20 @@ public class AlvinCoraToFedoraPlaceConverterTest {
 				.usingHttpHandlerFactoryAndFedoraUrl(httpHandlerFactory, fedoraURL);
 
 		DataGroup record = createPlaceDataGroupUsingPid("alvin-place:680");
-		DataGroup coordinates = DataGroup.withNameInData("coordinates");
-		coordinates.addChild(DataAtomic.withNameInDataAndValue("latitude", "41.88121792424412"));
-		coordinates.addChild(DataAtomic.withNameInDataAndValue("longitude", "12.488296441733837"));
-		record.addChild(coordinates);
+		addCoordinatesToRecord(record);
 
 		String xml = converter.toNewXML(record);
 
 		assertEquals(xml,
 				ResourceReader.readResourceAsString("place/expectedCreated680Coordinates.xml"));
 
+	}
+
+	private void addCoordinatesToRecord(DataGroup record) {
+		DataGroup coordinates = DataGroup.withNameInData("coordinates");
+		coordinates.addChild(DataAtomic.withNameInDataAndValue("latitude", "41.88121792424412"));
+		coordinates.addChild(DataAtomic.withNameInDataAndValue("longitude", "12.488296441733837"));
+		record.addChild(coordinates);
 	}
 
 }

@@ -109,23 +109,44 @@ public final class XMLXPathParser {
 
 	public void setStringInDocumentUsingXPath(String xpathString, String newValue) {
 		try {
-			XPathExpression expr = xpath.compile(xpathString);
-			Node nodeToSet = (Node) expr.evaluate(document, XPathConstants.NODE);
-			if (nodeToSet != null) {
-				nodeToSet.setTextContent(newValue);
-			} else {
-				Element longitudeNode = document.createElement("longitude");
-				longitudeNode.appendChild(document.createTextNode(""));
-				XPathExpression parentExpr = xpath.compile("/place");
-				Node parentNode = (Node) parentExpr.evaluate(document, XPathConstants.NODE);
-				// Node parentNode = document.getParentNode();
-				parentNode.appendChild(longitudeNode);
-				nodeToSet = (Node) expr.evaluate(document, XPathConstants.NODE);
-				nodeToSet.setTextContent(newValue);
-			}
+			Node nodeToSet = evaluateXPath(xpathString);
+			nodeToSet.setTextContent(newValue);
 		} catch (XPathExpressionException e) {
 			throw new RuntimeException("Error setting string value on node", e);
 		}
+	}
+
+	private Node evaluateXPath(String xpathString) throws XPathExpressionException {
+		XPathExpression expr = xpath.compile(xpathString);
+		return (Node) expr.evaluate(document, XPathConstants.NODE);
+	}
+
+	public void setOrCreateStringInDocumentUsingXPath(String xpathString, String newValue,
+			String elementName, String parentPath) {
+		try {
+			tryToSetOrCreateStringInDocuement(xpathString, newValue, elementName, parentPath);
+		} catch (XPathExpressionException e) {
+			throw new RuntimeException("Error setting or creating string value on node", e);
+		}
+	}
+
+	private void tryToSetOrCreateStringInDocuement(String xpathString, String newValue,
+			String elementName, String parentPath) throws XPathExpressionException {
+		Node nodeToSet = evaluateXPath(xpathString);
+		if (nodeToSet != null) {
+			setStringInDocumentUsingXPath(xpathString, newValue);
+		} else {
+			createAndAppendElement(elementName, newValue, parentPath);
+		}
+	}
+
+	private void createAndAppendElement(String elementName, String newValue, String parentPath)
+			throws XPathExpressionException {
+		Element newNode = document.createElement(elementName);
+		newNode.appendChild(document.createTextNode(newValue));
+		XPathExpression parentExpr = xpath.compile(parentPath);
+		Node parentNode = (Node) parentExpr.evaluate(document, XPathConstants.NODE);
+		parentNode.appendChild(newNode);
 	}
 
 	public String getDocumentAsString(String xpathString) {
@@ -133,11 +154,14 @@ public final class XMLXPathParser {
 			XPathExpression expr = xpath.compile(xpathString);
 			Node nodeToExport = (Node) expr.evaluate(document, XPathConstants.NODE);
 			StringWriter sw = new StringWriter();
-			TransformerFactory tf = TransformerFactory.newInstance();
-			tf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
-			Transformer transformer = tf.newTransformer();
+			TransformerFactory transformerFactory = TransformerFactory.newInstance();
+			transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+			transformerFactory.setAttribute("indent-number", 4);
+
+			Transformer transformer = transformerFactory.newTransformer();
 			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			transformer.setOutputProperty(OutputKeys.INDENT, "no");
 			transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 

@@ -20,9 +20,6 @@ package se.uu.ub.cora.alvin.mixedstorage.parse;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.alvin.mixedstorage.parse.ParseException;
-import se.uu.ub.cora.alvin.mixedstorage.parse.XMLXPathParser;
-
 public class XMLXPathParserTest {
 
 	@Test(expectedExceptions = ParseException.class, expectedExceptionsMessageRegExp = ""
@@ -59,6 +56,14 @@ public class XMLXPathParserTest {
 	public void testBrokenGetDocumentAsString() throws Exception {
 		XMLXPathParser parser = XMLXPathParser.forXML("<pid></pid>");
 		parser.getDocumentAsString("/broken/xpath/string not");
+	}
+
+	@Test(expectedExceptions = RuntimeException.class, expectedExceptionsMessageRegExp = ""
+			+ "Error setting or creating string value on node")
+	public void testErrorWhenSettingOrCreatingString() throws Exception {
+		XMLXPathParser parser = XMLXPathParser.forXML("<pid></pid>");
+		parser.setOrCreateStringInDocumentUsingXPath("/broken/xpath/string not", "someNewValue",
+				"someElementName", "someParentPath");
 	}
 
 }

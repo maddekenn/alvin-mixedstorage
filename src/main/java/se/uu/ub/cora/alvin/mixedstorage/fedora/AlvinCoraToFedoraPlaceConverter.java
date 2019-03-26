@@ -51,6 +51,7 @@ public class AlvinCoraToFedoraPlaceConverter implements AlvinCoraToFedoraConvert
 		String fedoraXML = getXMLForRecordFromFedora(recordId);
 		parser = XMLXPathParser.forXML(fedoraXML);
 		convertDefaultName(record);
+		possiblyAddCoordinates(record);
 		return parser.getDocumentAsString("/");
 	}
 
@@ -85,16 +86,6 @@ public class AlvinCoraToFedoraPlaceConverter implements AlvinCoraToFedoraConvert
 		return defaultName.getFirstAtomicValueWithNameInData("value");
 	}
 
-	public HttpHandlerFactory getHttpHandlerFactory() {
-		// needed for tests
-		return httpHandlerFactory;
-	}
-
-	public String getFedorURL() {
-		// needed for tests
-		return fedoraURL;
-	}
-
 	@Override
 	public String toNewXML(DataGroup record) {
 		String newPlaceTemplate = ResourceReader.readResourceAsString("place/templatePlace.xml");
@@ -107,8 +98,7 @@ public class AlvinCoraToFedoraPlaceConverter implements AlvinCoraToFedoraConvert
 
 		String tsCreated = recordInfo.getFirstAtomicValueWithNameInData("tsCreated");
 		setStringFromDocumentUsingXPath("/place/recordInfo/created/date", tsCreated + " UTC");
-		setStringFromDocumentUsingXPath("/place/longitude", "14.000001");
-
+		possiblyAddCoordinates(record);
 		return parser.getDocumentAsString("/");
 	}
 
@@ -116,6 +106,40 @@ public class AlvinCoraToFedoraPlaceConverter implements AlvinCoraToFedoraConvert
 		DataGroup createdBy = recordInfo.getFirstGroupWithNameInData("createdBy");
 		String userId = createdBy.getFirstAtomicValueWithNameInData("linkedRecordId");
 		setStringFromDocumentUsingXPath("/place/recordInfo/created/user/userId", userId);
+	}
+
+	private void possiblyAddCoordinates(DataGroup record) {
+		if (record.containsChildWithNameInData("coordinates")) {
+			addCoordinates(record);
+		}
+	}
+
+	private void addCoordinates(DataGroup record) {
+		DataGroup coordinates = record.getFirstGroupWithNameInData("coordinates");
+		addLongitude(coordinates);
+		addLatitude(coordinates);
+	}
+
+	private void addLongitude(DataGroup coordinates) {
+		String longitude = coordinates.getFirstAtomicValueWithNameInData("longitude");
+		parser.setOrCreateStringInDocumentUsingXPath("/place/longitude", longitude, "longitude",
+				"/place");
+	}
+
+	private void addLatitude(DataGroup coordinates) {
+		String latitude = coordinates.getFirstAtomicValueWithNameInData("latitude");
+		parser.setOrCreateStringInDocumentUsingXPath("/place/latitude", latitude, "latitude",
+				"/place");
+	}
+
+	public HttpHandlerFactory getHttpHandlerFactory() {
+		// needed for tests
+		return httpHandlerFactory;
+	}
+
+	public String getFedorURL() {
+		// needed for tests
+		return fedoraURL;
 	}
 
 }
