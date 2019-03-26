@@ -30,6 +30,7 @@ import se.uu.ub.cora.httphandler.HttpHandlerFactory;
 
 public class AlvinCoraToFedoraPlaceConverter implements AlvinCoraToFedoraConverter {
 
+	private static final String PARENT_PATH = "/place";
 	private HttpHandlerFactory httpHandlerFactory;
 	private String fedoraURL;
 	private XMLXPathParser parser;
@@ -51,7 +52,7 @@ public class AlvinCoraToFedoraPlaceConverter implements AlvinCoraToFedoraConvert
 		String fedoraXML = getXMLForRecordFromFedora(recordId);
 		parser = XMLXPathParser.forXML(fedoraXML);
 		convertDefaultName(record);
-		possiblyAddCoordinates(record);
+		addOrPossiblyRemoveCoordinates(record);
 		return parser.getDocumentAsString("/");
 	}
 
@@ -98,7 +99,7 @@ public class AlvinCoraToFedoraPlaceConverter implements AlvinCoraToFedoraConvert
 
 		String tsCreated = recordInfo.getFirstAtomicValueWithNameInData("tsCreated");
 		setStringFromDocumentUsingXPath("/place/recordInfo/created/date", tsCreated + " UTC");
-		possiblyAddCoordinates(record);
+		addOrPossiblyRemoveCoordinates(record);
 		return parser.getDocumentAsString("/");
 	}
 
@@ -108,9 +109,12 @@ public class AlvinCoraToFedoraPlaceConverter implements AlvinCoraToFedoraConvert
 		setStringFromDocumentUsingXPath("/place/recordInfo/created/user/userId", userId);
 	}
 
-	private void possiblyAddCoordinates(DataGroup record) {
+	private void addOrPossiblyRemoveCoordinates(DataGroup record) {
 		if (record.containsChildWithNameInData("coordinates")) {
 			addCoordinates(record);
+		} else {
+			parser.removeNodeUsingElementNameAndParentPath("/place/longitude", PARENT_PATH);
+			parser.removeNodeUsingElementNameAndParentPath("/place/latitude", PARENT_PATH);
 		}
 	}
 
@@ -123,13 +127,13 @@ public class AlvinCoraToFedoraPlaceConverter implements AlvinCoraToFedoraConvert
 	private void addLongitude(DataGroup coordinates) {
 		String longitude = coordinates.getFirstAtomicValueWithNameInData("longitude");
 		parser.setOrCreateStringInDocumentUsingXPath("/place/longitude", longitude, "longitude",
-				"/place");
+				PARENT_PATH);
 	}
 
 	private void addLatitude(DataGroup coordinates) {
 		String latitude = coordinates.getFirstAtomicValueWithNameInData("latitude");
 		parser.setOrCreateStringInDocumentUsingXPath("/place/latitude", latitude, "latitude",
-				"/place");
+				PARENT_PATH);
 	}
 
 	public HttpHandlerFactory getHttpHandlerFactory() {

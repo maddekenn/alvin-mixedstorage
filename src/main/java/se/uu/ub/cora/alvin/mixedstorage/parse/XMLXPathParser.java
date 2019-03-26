@@ -171,4 +171,17 @@ public final class XMLXPathParser {
 			throw new RuntimeException("Error converting node to String", e);
 		}
 	}
+
+	public void removeNodeUsingElementNameAndParentPath(String xpathString, String parentPath) {
+		try {
+			Node node = evaluateXPath(xpathString);
+			if (node != null) {
+				XPathExpression parentExpr = xpath.compile(parentPath);
+				Node parentNode = (Node) parentExpr.evaluate(document, XPathConstants.NODE);
+				parentNode.removeChild(node);
+			}
+		} catch (XPathExpressionException e) {
+			throw new RuntimeException("Error removing node", e);
+		}
+	}
 }

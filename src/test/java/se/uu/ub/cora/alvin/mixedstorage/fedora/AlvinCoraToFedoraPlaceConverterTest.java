@@ -40,6 +40,7 @@ public class AlvinCoraToFedoraPlaceConverterTest {
 		AlvinCoraToFedoraConverter converter = AlvinCoraToFedoraPlaceConverter
 				.usingHttpHandlerFactoryAndFedoraUrl(httpHandlerFactory, fedoraURL);
 		DataGroup record = createPlaceDataGroupUsingPid("alvin-place:679");
+		addCoordinatesToRecord(record, "17.631198404124007", "59.85488966429547");
 
 		String xml = converter.toXML(record);
 		assertEquals(httpHandlerFactory.factoredHttpHandlers.size(), 1);
@@ -64,12 +65,29 @@ public class AlvinCoraToFedoraPlaceConverterTest {
 		AlvinCoraToFedoraConverter converter = AlvinCoraToFedoraPlaceConverter
 				.usingHttpHandlerFactoryAndFedoraUrl(httpHandlerFactory, fedoraURL);
 		DataGroup record = createPlaceDataGroupUsingPid("alvin-place:679");
-		addCoordinatesToRecord(record);
+		addCoordinatesToRecord(record, "12.488296441733837", "41.88121792424412");
 
 		String xml = converter.toXML(record);
-
 		assertEquals(xml,
 				ResourceReader.readResourceAsString("place/expectedUpdated679WithCoordinates.xml"));
+
+	}
+
+	@Test
+	public void testConvertToFedoraXMLRemovedCoordinates() throws Exception {
+
+		HttpHandlerFactorySpy httpHandlerFactory = new HttpHandlerFactorySpy();
+		httpHandlerFactory.responseCodes.add(201);
+		httpHandlerFactory.responseTexts.add(ResourceReader.readResourceAsString("place/679.xml"));
+
+		String fedoraURL = "someFedoraURL";
+		AlvinCoraToFedoraConverter converter = AlvinCoraToFedoraPlaceConverter
+				.usingHttpHandlerFactoryAndFedoraUrl(httpHandlerFactory, fedoraURL);
+		DataGroup record = createPlaceDataGroupUsingPid("alvin-place:679");
+
+		String xml = converter.toXML(record);
+		assertEquals(xml, ResourceReader
+				.readResourceAsString("place/expectedUpdated679WithoutCoordinates.xml"));
 
 	}
 
@@ -126,7 +144,7 @@ public class AlvinCoraToFedoraPlaceConverterTest {
 				.usingHttpHandlerFactoryAndFedoraUrl(httpHandlerFactory, fedoraURL);
 
 		DataGroup record = createPlaceDataGroupUsingPid("alvin-place:680");
-		addCoordinatesToRecord(record);
+		addCoordinatesToRecord(record, "12.488296441733837", "41.88121792424412");
 
 		String xml = converter.toNewXML(record);
 
@@ -135,10 +153,10 @@ public class AlvinCoraToFedoraPlaceConverterTest {
 
 	}
 
-	private void addCoordinatesToRecord(DataGroup record) {
+	private void addCoordinatesToRecord(DataGroup record, String longitude, String latitude) {
 		DataGroup coordinates = DataGroup.withNameInData("coordinates");
-		coordinates.addChild(DataAtomic.withNameInDataAndValue("latitude", "41.88121792424412"));
-		coordinates.addChild(DataAtomic.withNameInDataAndValue("longitude", "12.488296441733837"));
+		coordinates.addChild(DataAtomic.withNameInDataAndValue("longitude", longitude));
+		coordinates.addChild(DataAtomic.withNameInDataAndValue("latitude", latitude));
 		record.addChild(coordinates);
 	}
 
