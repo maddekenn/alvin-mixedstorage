@@ -27,6 +27,8 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.alvin.mixedstorage.db.AlvinDbToCoraConverter;
+import se.uu.ub.cora.alvin.mixedstorage.db.AlvinDbToCoraConverterSpy;
 import se.uu.ub.cora.alvin.mixedstorage.log.LoggerFactorySpy;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
@@ -38,11 +40,15 @@ public class AlvinMixedUserStorageTest {
 	private UserStorageSpy userStorageForGuest;
 	private AlvinMixedUserStorage alvinMixedUserStorage;
 	private String userId = "someId@ab.sld.tld";
+	// private String sqlToGetUserAndRoles = "select alvinuser.*, role.group_id from alvin_seam_user
+	// alvinuser"
+	// + " left join alvin_role role on alvinuser.id = role.user_id where alvinuser.userid = ?"
+	// + " and alvinuser.domain=?;";
 	private String sqlToGetUserAndRoles = "select alvinuser.*, role.group_id from alvin_seam_user alvinuser"
-			+ " left join alvin_role role on alvinuser.id = role.user_id where  alvinuser.userid = ?"
-			+ " and alvinuser.domain=?;";
+			+ " where  alvinuser.userid = ? and alvinuser.domain=?;";
 	private LoggerFactorySpy loggerFactorySpy;
 	private String testedClassName = "AlvinMixedUserStorage";
+	private AlvinDbToCoraConverter userConverter;
 
 	@BeforeMethod
 	public void BeforeMethod() {
@@ -50,8 +56,10 @@ public class AlvinMixedUserStorageTest {
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		dataReaderForUsers = new DataReaderSpy();
 		userStorageForGuest = new UserStorageSpy();
-		alvinMixedUserStorage = AlvinMixedUserStorage.usingUserStorageForGuestAndDataReaderForUsers(
-				userStorageForGuest, dataReaderForUsers);
+		userConverter = new AlvinDbToCoraConverterSpy();
+		alvinMixedUserStorage = AlvinMixedUserStorage
+				.usingUserStorageForGuestAndDataReaderAndConverter(userStorageForGuest,
+						dataReaderForUsers, userConverter);
 	}
 
 	@Test
@@ -136,6 +144,9 @@ public class AlvinMixedUserStorageTest {
 	public void testGetUserByIdFromLoginReturnsDataGroupWithUserInfo() {
 		DataGroup userDataGroup = alvinMixedUserStorage.getUserByIdFromLogin(userId);
 		assertNotNull(userDataGroup);
+
+		// TODO: kolla attt convertern har blivit anropad
+
 		assertEquals(userDataGroup.getNameInData(), "user");
 		assertEquals(userDataGroup.getAttribute("type"), "coraUser");
 

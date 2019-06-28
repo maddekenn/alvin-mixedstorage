@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import se.uu.ub.cora.alvin.mixedstorage.db.AlvinDbToCoraConverter;
 import se.uu.ub.cora.bookkeeper.data.DataAtomic;
 import se.uu.ub.cora.bookkeeper.data.DataGroup;
 import se.uu.ub.cora.gatekeeper.user.UserStorage;
@@ -37,8 +38,9 @@ public class AlvinMixedUserStorage implements UserStorage {
 	private DataReader dataReaderForUsers;
 	private Logger log = LoggerProvider.getLoggerForClass(AlvinMixedUserStorage.class);
 
-	public static AlvinMixedUserStorage usingUserStorageForGuestAndDataReaderForUsers(
-			UserStorage userStorageForGuest, DataReader dataReaderForUsers) {
+	public static AlvinMixedUserStorage usingUserStorageForGuestAndDataReaderAndConverter(
+			UserStorage userStorageForGuest, DataReader dataReaderForUsers,
+			AlvinDbToCoraConverter userConverter) {
 		return new AlvinMixedUserStorage(userStorageForGuest, dataReaderForUsers);
 	}
 
@@ -72,8 +74,7 @@ public class AlvinMixedUserStorage implements UserStorage {
 
 	private List<Map<String, Object>> queryDbForUserUsingIdFromLogin(String idFromLogin) {
 		String sql = "select alvinuser.*, role.group_id from alvin_seam_user alvinuser "
-				+ "left join alvin_role role on alvinuser.id = role.user_id where  alvinuser.userid = ?"
-				+ " and alvinuser.domain=?;";
+				+ "where  alvinuser.userid = ? and alvinuser.domain=?;";
 
 		List<Object> values = createValueListFromLogin(idFromLogin);
 		return dataReaderForUsers.executePreparedStatementQueryUsingSqlAndValues(sql, values);

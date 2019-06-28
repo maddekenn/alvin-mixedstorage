@@ -32,8 +32,8 @@ public class RealDbTest {
 	@Test(enabled = false)
 	private void test() {
 		AlvinMixedUserStorage userStorage = AlvinMixedUserStorage
-				.usingUserStorageForGuestAndDataReaderForUsers(userStorageForGuest,
-						dataReaderForUsers);
+				.usingUserStorageForGuestAndDataReaderAndConverter(userStorageForGuest,
+						dataReaderForUsers, null);
 		DataGroup userByIdFromLogin = userStorage.getUserByIdFromLogin("olfel499@user.uu.se");
 		assertNotNull(userByIdFromLogin);
 	}
@@ -41,8 +41,8 @@ public class RealDbTest {
 	@Test(enabled = false)
 	private void testMadde() {
 		AlvinMixedUserStorage userStorage = AlvinMixedUserStorage
-				.usingUserStorageForGuestAndDataReaderForUsers(userStorageForGuest,
-						dataReaderForUsers);
+				.usingUserStorageForGuestAndDataReaderAndConverter(userStorageForGuest,
+						dataReaderForUsers, null);
 		DataGroup userByIdFromLogin = userStorage.getUserByIdFromLogin("maken168@user.uu.se");
 		assertNotNull(userByIdFromLogin);
 	}

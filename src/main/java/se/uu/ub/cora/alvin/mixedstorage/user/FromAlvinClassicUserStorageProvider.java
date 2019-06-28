@@ -54,8 +54,8 @@ public class FromAlvinClassicUserStorageProvider implements UserStorageProvider 
 		ContextConnectionProviderImp sqlConnectionProvider = createConnectionProvider();
 
 		DataReaderImp dataReader = DataReaderImp.usingSqlConnectionProvider(sqlConnectionProvider);
-		userStorage = AlvinMixedUserStorage
-				.usingUserStorageForGuestAndDataReaderForUsers(userStorageForGuest, dataReader);
+		userStorage = AlvinMixedUserStorage.usingUserStorageForGuestAndDataReaderAndConverter(
+				userStorageForGuest, dataReader, null);
 	}
 
 	private ContextConnectionProviderImp createConnectionProvider() {
